@@ -17,35 +17,45 @@ import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
+/**
+ * @author adriano-fonseca
+ *
+ */
 public class HttpMp3FileDownloader {
-
+  /*Proxy details*/
   private static final String USER_AGENT = "Mozilla/5.0";
-  private static final String proxyUrl = "your.proxy.com";
-  private static final int portNumber = 3128;
-  private static final String authUser = "user";
-  private static final String authPassword = "senha";
+  private static final String PROXYURL = "your.proxy.com";
+  private static final int PORTNUMBER = 3128;
+  private static final String AUTHUSER = "user";
+  private static final String AUTHPASSWORD = "senha";
   
-  private static final String urlpartial = "http://libsyn.com/media/eslpod/";
+  /*Log details*/
+  private static final String LOGFOLDERPATH = "./log";  
+  private static final String ERRORLOGPATH = "./log/error.log";
+  private static final Logger LOGGER = Logger.getLogger("DownloadErrorLog");  
   
-  private static final String logFolderPath = "./log";  
-  private static final String errorLogPath = "./log/error.log";
-  
-  private static final String fileFolderPath = "./files";
-  private static final String prefixNameFile = "ESLPod";    
-  private static final Integer numFinalEpisode = 1157;
-  private static final String extencionFile = ".mp3";
-  private static final Logger logger = Logger.getLogger("DownloadErrorLog");  
+  /*File details*/
+  private static final String FILEFOLDERPATH = "./files";
+  private static final String FILEPREFIXNAME = "ESLPod";    
+  private static final Integer NUMFINALEPISODE = 1157;
+  private static final String EXTENSION = ".mp3";
+  private static final String URLPARTIAL = "http://libsyn.com/media/eslpod/";
 
   public static void main(String[] args){
     createFolders();
-    getFile(false,proxyUrl,portNumber,authUser,authPassword);
+    getFile(false,PROXYURL,PORTNUMBER,AUTHUSER,AUTHPASSWORD);
     
 //      getFileTestWithProxyAuth();
   }
 
+  /**
+   * @author adriano-fonseca
+   * 
+   *  This method check if log and files folder exists otherwise it will create them
+   */
   private static void createFolders() {
-    File fileFolder = new File(fileFolderPath);
-    File logFolder = new File(logFolderPath);
+    File fileFolder = new File(FILEFOLDERPATH);
+    File logFolder = new File(LOGFOLDERPATH);
     
     if (!fileFolder.exists()) {
         fileFolder.mkdir();
@@ -55,8 +65,21 @@ public class HttpMp3FileDownloader {
       logFolder.mkdir();
     }
   }
+  
+  
 
-  // HTTP GET request
+  
+  /**
+   * @author adriano-fonseca 
+   * @param proxyAuth
+   * @param proxyUrl
+   * @param portNumber
+   * @param authUser
+   * @param authPassword
+   * 
+   * This method is responsible to dowload all files within the range defined for 
+   * numInitialEpisode and NUMFINALEPISODE
+   */
   private static void getFile(boolean proxyAuth,String proxyUrl,int portNumber,final String authUser,final String authPassword) {
     Integer numInitialEpisode = 206;
     FileHandler fh;  
@@ -65,22 +88,22 @@ public class HttpMp3FileDownloader {
     StringBuffer urlFromFile = new StringBuffer();
     HttpURLConnection con=null;
 
-    while(numInitialEpisode<numFinalEpisode){
+    while(numInitialEpisode<NUMFINALEPISODE){
       StringBuffer fileName = new StringBuffer();
-      fileName.append(prefixNameFile);
+      fileName.append(FILEPREFIXNAME);
       fileName.append(numInitialEpisode.toString());
-      fileName.append(extencionFile);
+      fileName.append(EXTENSION);
       System.out.println(fileName);
       
       try {
         //Prepare Logger
-        fh = new FileHandler(errorLogPath);  
-        logger.addHandler(fh);
+        fh = new FileHandler(ERRORLOGPATH);  
+        LOGGER.addHandler(fh);
         SimpleFormatter formatter = new SimpleFormatter();  
         fh.setFormatter(formatter);
         
         //Generate File Url
-        urlFromFile.append(urlpartial);
+        urlFromFile.append(URLPARTIAL);
         urlFromFile.append(fileName);
         
         if(proxyAuth){
@@ -110,6 +133,15 @@ public class HttpMp3FileDownloader {
     }
   }
   
+
+  /**
+   * @author adriano-fonseca 
+   * @param fileName
+   * @param urlFromFile
+   * @param e
+   * 
+   * responsible to genete logs for every file that was not able to download
+   */
   private static void logError(StringBuffer fileName, StringBuffer urlFromFile, Exception e) {
     StringBuffer log = new StringBuffer();
     log.append("Impossible get file [");
@@ -119,9 +151,17 @@ public class HttpMp3FileDownloader {
     log.append("] \n");
     log.append("Cause: ");
     log.append(e.getMessage());
-    logger.severe(log.toString());
+    LOGGER.severe(log.toString());
   }
 
+  /**
+   * @author adriano-fonseca 
+   * @param inStream
+   * @return
+   * 
+   * Convert inputStrem to byteArray in blocks of 8192 bytes this is base on mp3 
+   * format specification
+   */
   public static byte[] inputStreamToByteArray(InputStream inStream) {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     byte[] buffer = new byte[8192];
@@ -136,6 +176,13 @@ public class HttpMp3FileDownloader {
     return baos.toByteArray();
   }
   
+  /**
+   * @author adriano-fonseca 
+   * @param byteArray
+   * @param outFilePath
+   * 
+   * Convert byte array to file
+   */
   public static void byteArrayToFile(byte[] byteArray, String outFilePath){
     FileOutputStream fos;
     try {
@@ -150,6 +197,21 @@ public class HttpMp3FileDownloader {
    
   }
   
+  /**
+   * @author adriano-fonseca 
+   * @param urlFromFile
+   * @param proxyAuthentication
+   * @param proxyUrl
+   * @param portNumber
+   * @param authUser
+   * @param authPassword
+   * @return
+   * @throws IOException
+   * 
+   * This method is responsible to return a connection for a url.
+   * Its possible have a connection through proxy just passing true in proxy authentication
+   * and informing the follow parameter properly
+   */
   private static HttpURLConnection getConnectionHttpUrlConnection(String urlFromFile, Boolean proxyAuthentication,String proxyUrl,int portNumber,final String authUser,final String authPassword) throws IOException{
     HttpURLConnection con = null;
     URL server = new URL(urlFromFile);
@@ -177,12 +239,18 @@ public class HttpMp3FileDownloader {
     }
   }
   
+  /**
+   * @author adriano-fonseca
+   * 
+   * Just used to test inside of network that have proxy rules the not allow you download mp3 files
+   * So in this case, I found a link inside of intrate in order to test the code 
+   */
   private static void getFileTestWithProxyAuth() {
     /*Proxy details*/
     String urlMP3 = "http://hvi.procergs.com.br/intranet/audios/Reporter.PROCERGS.20150612.mp3";
     HttpURLConnection con;
     try {
-      con = getConnectionHttpUrlConnection(urlMP3,true,proxyUrl,portNumber,authUser,authPassword);
+      con = getConnectionHttpUrlConnection(urlMP3,true,PROXYURL,PORTNUMBER,AUTHUSER,AUTHPASSWORD);
       int responseCode = con.getResponseCode();
       System.out.println("\nSending 'GET' request to URL : " + urlMP3);
       System.out.println("Response Code : " + responseCode);
