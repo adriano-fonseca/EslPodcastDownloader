@@ -179,11 +179,6 @@ public class HttpMp3FileDownloader {
   
   private static void getFileTestWithProxyAuth() {
     /*Proxy details*/
-    String proxyUrl = "proxy.procergs.reders";
-    int portNumber = 3128;
-    String authUser = "user";
-    String authPassword = "pass";
-    
     String urlMP3 = "http://hvi.procergs.com.br/intranet/audios/Reporter.PROCERGS.20150612.mp3";
     HttpURLConnection con;
     try {
