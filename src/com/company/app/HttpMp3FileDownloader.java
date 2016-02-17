@@ -1,6 +1,7 @@
 package com.company.app;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -23,16 +24,36 @@ public class HttpMp3FileDownloader {
   private static final int portNumber = 3128;
   private static final String authUser = "user";
   private static final String authPassword = "senha";
+  
   private static final String urlpartial = "http://libsyn.com/media/eslpod/";
+  
+  private static final String logFolderPath = "./log";  
   private static final String errorLogPath = "./log/error.log";
+  
+  private static final String fileFolderPath = "./files";
   private static final String prefixNameFile = "ESLPod";    
   private static final Integer numFinalEpisode = 1157;
   private static final String extencionFile = ".mp3";
   private static final Logger logger = Logger.getLogger("DownloadErrorLog");  
 
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args){
+    createFolders();
     getFile(false,proxyUrl,portNumber,authUser,authPassword);
-//    getFileTestWithProxyAuth();
+    
+//      getFileTestWithProxyAuth();
+  }
+
+  private static void createFolders() {
+    File fileFolder = new File(fileFolderPath);
+    File logFolder = new File(logFolderPath);
+    
+    if (!fileFolder.exists()) {
+        fileFolder.mkdir();
+     } 
+    
+    if (!logFolder.exists()) {
+      logFolder.mkdir();
+    }
   }
 
   // HTTP GET request
@@ -156,7 +177,7 @@ public class HttpMp3FileDownloader {
     }
   }
   
-  private static void getFileTestWithProxyAuth() throws IOException {
+  private static void getFileTestWithProxyAuth() {
     /*Proxy details*/
     String proxyUrl = "proxy.procergs.reders";
     int portNumber = 3128;
@@ -164,12 +185,18 @@ public class HttpMp3FileDownloader {
     String authPassword = "pass";
     
     String urlMP3 = "http://hvi.procergs.com.br/intranet/audios/Reporter.PROCERGS.20150612.mp3";
-    HttpURLConnection con = getConnectionHttpUrlConnection(urlMP3,true,proxyUrl,portNumber,authUser,authPassword);
-    int responseCode = con.getResponseCode();
-    System.out.println("\nSending 'GET' request to URL : " + urlMP3);
-    System.out.println("Response Code : " + responseCode);
-    byte[] bytes = inputStreamToByteArray(con.getInputStream());
-    byteArrayToFile(bytes,"./files/export.mp3");
+    HttpURLConnection con;
+    try {
+      con = getConnectionHttpUrlConnection(urlMP3,true,proxyUrl,portNumber,authUser,authPassword);
+      int responseCode = con.getResponseCode();
+      System.out.println("\nSending 'GET' request to URL : " + urlMP3);
+      System.out.println("Response Code : " + responseCode);
+      byte[] bytes = inputStreamToByteArray(con.getInputStream());
+      byteArrayToFile(bytes,"./files/export.mp3");
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
 
   private static HttpURLConnection getConnectionHttpUrlConnection(String urlFromFile) throws IOException{
